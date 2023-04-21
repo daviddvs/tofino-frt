@@ -11,4 +11,4 @@ Every time a data packet arrives at the ingress pipeline of the switch a timesta
 ## Repo organization
 - The file `forward_l2_pd.p4` contains the P4 data plane code to measure the FRT.
 - The file `forward_l2_interarrivaltime.p4` contains the P4 data plane code to measure the packet interarrival time.
-- In addition to this, the corresponding control plane configuration is required to activate the packet generation tool that sends a packet when a port down event occurs.
+- The file `pgt_portdown.py` contains the control plane configuration to activate the port-down on a specific port using the `run_pd_rpc.py` tool.
