@@ -1,5 +1,5 @@
 # Tofino Failure Reaction Time (FRT)
-This repo cotains the P4 code to measure the Failure Reaction Time (FRT) of a Tofino switch.
+This repo cotains the P4 code to measure the Failure Reaction Time (FRT) of an Intel Tofino ASIC based switch.
 
 
 ## Getting started
