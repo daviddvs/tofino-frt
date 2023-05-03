@@ -9,6 +9,7 @@
 const bit<16> ETHERTYPE_TPID = 0x8100;
 const bit<16> ETHERTYPE_IPV4 = 0x0800;
 const bit<9>  PORT_DOWN = 68;
+const bit<9>  PORT_H1 = 44; // PHY port 17
 const bit<8>  POS_TS1 = 0;
 const bit<8>  POS_TS2 = 1;
 
@@ -43,6 +44,9 @@ header vlan_tag_h {
 header timestamps_ingress_h {
     ts_t ts2;
     ts_t ts1;
+    ts_t ts4;
+    ts_t ts3;
+
 }
 
 /*************************************************************************
@@ -124,6 +128,7 @@ control Ingress(
 
     
     Register<bit<32>,bit<8>>(128) ts;
+    Register<bit<32>,bit<8>>(128) ts_ingress;
     
     RegisterAction<bit<32>,bit<8>,bit<32>> (ts)
     write_ts = {
@@ -132,11 +137,26 @@ control Ingress(
         }
     };
 
+    RegisterAction<bit<32>,bit<8>,bit<32>> (ts_ingress)
+    write_ts_ingress = {
+        void apply(inout bit<32> register_data_ingress) {
+            register_data_ingress = ig_intr_md.ingress_mac_tstamp[31:0];
+        }
+    };
+
     RegisterAction<bit<32>,bit<8>,bit<32>> (ts)
     read_ts = {
         void apply(inout bit<32> register_data, out bit<32> result) {
             result = register_data;
             register_data = 0x010101010101; //Overwrite with junk
+        }
+    };
+
+    RegisterAction<bit<32>,bit<8>,bit<32>> (ts_ingress)
+    read_ts_ingress = {
+        void apply(inout bit<32> register_data_ingress, out bit<32> result) {
+            result = register_data_ingress;
+            register_data_ingress = 0x010101010101; //Overwrite with junk
         }
     };
     
@@ -148,12 +168,19 @@ control Ingress(
                 hdr.ts_ingress.setValid();
                 //hdr.ts_ingress.ts1 = ig_intr_md.ingress_mac_tstamp; 
                 hdr.ts_ingress.ts2 = ig_prsr_md.global_tstamp[31:0];
+                hdr.ts_ingress.ts4 = ig_intr_md.ingress_mac_tstamp[31:0];
                 hdr.ts_ingress.ts1 = read_ts.execute(POS_TS1);
+                hdr.ts_ingress.ts3 = read_ts_ingress.execute(POS_TS2);
+
                 //hdr.ts_ingress.ts1 = (ts_t) ts.read(POS_TS1);
             }
             else {
-                write_ts.execute(POS_TS1);
-                //ts.write((bit<8>)POS_TS1, (bit<32>)ig_prsr_md.global_tstamp);
+                if(ig_intr_md.ingress_port == PORT_H1) { // store ts only for one direction
+                    write_ts.execute(POS_TS1);
+                    write_ts_ingress.execute(POS_TS2);
+                    //ts.write((bit<8>)POS_TS1, (bit<32>)ig_prsr_md.global_tstamp);
+                }
+                
             }
             forward_l2.apply();
         }

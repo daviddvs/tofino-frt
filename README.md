@@ -12,3 +12,4 @@ Every time a data packet arrives at the ingress pipeline of the switch a timesta
 - The file `forward_l2_pd.p4` contains the P4 data plane code to measure the FRT.
 - The file `forward_l2_interarrivaltime.p4` contains the P4 data plane code to measure the packet interarrival time.
 - The file `pgt_portdown.py` contains the control plane configuration to activate the port-down on a specific port using the `run_pd_rpc.py` tool.
+- The file `receive_ts.py` contains the Python code of the Collector, which receives and processed the packets with the timestamps. The command used is `sudo python3 receive_ts.py -c eno4`.
